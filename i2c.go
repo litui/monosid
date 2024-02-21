@@ -3,14 +3,16 @@ package main
 import (
 	"machine"
 	"time"
+
+	"github.com/litui/monosid/config"
 )
 
 func i2cInit() *machine.I2C {
-	i2c := machine.I2C1
+	i2c := config.MAIN_I2C
 	err := i2c.Configure(machine.I2CConfig{
 		Frequency: 800000,
-		SCL:       machine.GP27,
-		SDA:       machine.GP26,
+		SCL:       config.PIN_I2C_SCL,
+		SDA:       config.PIN_I2C_SDA,
 	})
 	if err != nil {
 		for {

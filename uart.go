@@ -3,14 +3,16 @@ package main
 import (
 	"machine"
 	"time"
+
+	"github.com/litui/monosid/config"
 )
 
 func uartInit() *machine.UART {
-	uart := machine.UART0
+	uart := config.MIDI_UART
 	err := uart.Configure(machine.UARTConfig{
 		BaudRate: 31250,
-		TX:       machine.UART0_TX_PIN,
-		RX:       machine.UART0_RX_PIN,
+		TX:       config.PIN_MIDI_TX,
+		RX:       config.PIN_MIDI_RX,
 	})
 	if err != nil {
 		for {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/litui/monosid/graphics"
 	"github.com/litui/monosid/midi"
+	"github.com/litui/monosid/sid"
 )
 
 func main() {
@@ -13,6 +14,7 @@ func main() {
 
 	go graphics.Task(i2c)
 	go midi.Task(uart)
+	go sid.Task()
 
 	for {
 		time.Sleep(time.Second)
