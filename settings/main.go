@@ -1,11 +1,9 @@
-package sid
+package settings
 
 import "runtime"
 
 func Task() {
-	if initGpio() {
-		initClock()
-	}
+	initFs()
 
 	for {
 		runtime.Gosched()

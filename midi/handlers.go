@@ -1,11 +1,18 @@
 package midi
 
-func handleNoteOff(channel uint8, note uint8, velocity uint8) {
+import (
+	"github.com/litui/monosid/led"
+	"github.com/litui/monosid/log"
+)
 
+func handleNoteOff(channel uint8, note uint8, velocity uint8) {
+	led.Flash()
+	log.Logf("NoteOff - Ch%d - %d - %d", channel, note, velocity)
 }
 
 func handleNoteOn(channel uint8, note uint8, velocity uint8) {
-
+	led.Flash()
+	log.Logf("NoteOn - Ch%d - %d - %d", channel, note, velocity)
 }
 
 func handlePolyAftertouch(channel uint8, note uint8, pressure uint8) {

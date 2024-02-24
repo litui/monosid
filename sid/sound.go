@@ -1,0 +1,5 @@
+package sid
+
+func SetVolume() {
+
+}

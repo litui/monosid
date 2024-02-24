@@ -8,3 +8,5 @@ tinygo.org/x/tinydraw v0.4.0 h1:U9V0mHz8/jPShKjlh199vCfq1ARFyUOD1b+FfqIwV8c=
 tinygo.org/x/tinydraw v0.4.0/go.mod h1:WCV/EMljTv8w04iAxjv+fRD6/4ffx0afATYeJlN90Yo=
 tinygo.org/x/tinyfont v0.4.0 h1:XexPKEKiHInf6p4CMCJwsIheVPY0T46HUs6ictYyZfE=
 tinygo.org/x/tinyfont v0.4.0/go.mod h1:7nVj3j3geqBoPDzpFukAhF1C8AP9YocMsZy0HSAcGCA=
+tinygo.org/x/tinyfs v0.3.0 h1:7GjwuDYOKTJeiCVFT7DfukdFyj/vi0jK4iMZ703AofE=
+tinygo.org/x/tinyfs v0.3.0/go.mod h1:07HkxHkz69kYVrAiLS96RIjuDytVY6tOJ0mH8e5cKa0=
