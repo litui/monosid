@@ -5,7 +5,13 @@ import (
 	"time"
 
 	"github.com/litui/monosid/config"
-	"github.com/lunux2008/xulu"
+)
+
+type chip uint8
+
+const (
+	chipLeft chip = iota
+	chipRight
 )
 
 var (
@@ -29,8 +35,7 @@ func initGpio() bool {
 	config.PIN_SID_RW.High()
 
 	// Set both CS pins high to start
-	for i, v := range config.SID_CS_PINS {
-		xulu.Use(i)
+	for _, v := range config.SID_CS_PINS {
 
 		v.Configure(machine.PinConfig{
 			Mode: machine.PinOutput,
@@ -40,8 +45,7 @@ func initGpio() bool {
 	}
 
 	// Set addr pins low to start
-	for i, v := range config.SID_ADDR_PINS {
-		xulu.Use(i)
+	for _, v := range config.SID_ADDR_PINS {
 
 		v.Configure(machine.PinConfig{
 			Mode: machine.PinOutput,
@@ -51,8 +55,7 @@ func initGpio() bool {
 	}
 
 	// Set addr pins high to start
-	for i, v := range config.SID_DATA_PINS {
-		xulu.Use(i)
+	for _, v := range config.SID_DATA_PINS {
 
 		v.Configure(machine.PinConfig{
 			Mode: machine.PinOutput,
@@ -88,8 +91,8 @@ func initClock() bool {
 }
 
 // Enable one CS pin and disable the other. index is 0 or 1
-func csOn(index uint8) {
-	pol := intToBool(index)
+func csOn(index chip) {
+	pol := intToBool(uint8(index))
 	config.SID_CS_PINS[0].Set(pol)
 	config.SID_CS_PINS[1].Set(!pol)
 }
@@ -137,7 +140,7 @@ func setData(data uint8) bool {
 }
 
 // Writes data to specified SID chip
-func writeReg(chip uint8, address uint8, data uint8) bool {
+func writeReg(chip chip, address uint8, data uint8) bool {
 	if !clockReady {
 		return false
 	}

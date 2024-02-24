@@ -3,6 +3,7 @@ package rotaryencoder
 // Borrowed from tinygo drivers and adjusted to use the MCP23017
 
 import (
+	"math"
 	"time"
 
 	"tinygo.org/x/drivers/mcp23017"
@@ -23,8 +24,11 @@ func New(pinA, pinB, pinS mcp23017.Pin) Device {
 	return Device{pinA: pinA, pinB: pinB, pinS: pinS,
 		oldAB: 0b00000011, value: 0,
 		swValue: false, oldSwValue: false, wasClicked: false,
-		Dir:    make(chan int, 8),
-		Switch: make(chan bool)}
+		Dir:         make(chan int, 8),
+		Switch:      make(chan bool),
+		rangeBottom: math.MinInt,
+		rangeTop:    math.MaxInt,
+	}
 }
 
 // Device represents a rotary encoder.
@@ -40,37 +44,16 @@ type Device struct {
 	wasClicked bool
 	Dir        chan int
 	Switch     chan bool
+
+	rangeBottom int
+	rangeTop    int
 }
 
 // Configure configures the rotary encoder.
 func (enc *Device) Configure() {
-	// enc.pinA.SetMode(mcp23017.Input | mcp23017.Pullup)
-	// enc.pinB.SetMode(mcp23017.Input | mcp23017.Pullup)
-	// enc.pinS.SetMode(mcp23017.Input | mcp23017.Pullup)
 	enc.pinA.SetMode(mcp23017.Input)
 	enc.pinB.SetMode(mcp23017.Input)
 	enc.pinS.SetMode(mcp23017.Input)
-
-	// Initial values for oldAB
-	// aVal, _ := enc.pinA.Get()
-	// bVal, _ := enc.pinB.Get()
-	// ab := int(0)
-	// if aVal {
-	// 	ab |= 1 << 1
-	// }
-	// if bVal {
-	// 	ab |= 1
-	// }
-	// enc.oldAB = ab
-
-	// enc.pinA.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
-	// enc.pinA.SetInterrupt(machine.PinRising|machine.PinFalling, enc.interrupt)
-
-	// enc.pinB.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
-	// enc.pinB.SetInterrupt(machine.PinRising|machine.PinFalling, enc.interrupt)
-
-	// enc.pinS.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
-	// enc.pinS.SetInterrupt(machine.PinRising|machine.PinFalling, enc.swInterrupt)
 }
 
 func (enc *Device) UpdateSW(pinState bool) {
@@ -104,15 +87,24 @@ func (enc *Device) Update(aHigh bool, bHigh bool) {
 	// Each full click of the encoder generates 4 interupts.
 	// Each interrupt adds 1 or -1 to the value.
 	// We send the direction to the channel only when we have a full click, i.e. 4 interrupts.
+
 	if enc.value%clickSum == 0 {
-		direction := -(enc.value / clickSum)
+		divVal := enc.value / clickSum
+
+		direction := -(divVal)
 		if direction != 0 {
 			select { // non-blocking way of sending to channel
 			case enc.Dir <- direction:
 			default:
 			}
 		}
-		// enc.value = 0
+
+		// Limit encoder to within defined bounds
+		if divVal < enc.rangeBottom {
+			enc.value = enc.rangeBottom * clickSum
+		} else if divVal > enc.rangeTop {
+			enc.value = enc.rangeTop * clickSum
+		}
 	}
 }
 
@@ -134,4 +126,16 @@ func (enc *Device) SwitchWasClicked() bool {
 	} else {
 		return false
 	}
+}
+
+// Returns the current defined range for the encoder
+func (enc *Device) Range() (int, int) {
+	return enc.rangeBottom, enc.rangeTop
+}
+
+// Sets the possible value range for the encoder
+// This won't be used until the next tick
+func (enc *Device) SetRange(bottom int, top int) {
+	enc.rangeBottom = bottom
+	enc.rangeTop = top
 }

@@ -1,12 +1,12 @@
 package ui
 
 import (
-	"image/color"
 	"machine"
 	"runtime"
 
 	"github.com/litui/monosid/config"
 	"github.com/litui/monosid/log"
+	"github.com/litui/monosid/ui/menu"
 	"tinygo.org/x/drivers/ssd1306"
 )
 
@@ -14,18 +14,8 @@ const (
 	HEIGHT = 32
 )
 
-type Screen uint8
-
-const (
-	SCREEN_LOG Screen = iota
-)
-
 var (
-	BLACK = color.RGBA{0, 0, 0, 255}
-	WHITE = color.RGBA{1, 1, 1, 255}
-
-	currentScreen Screen
-	display       ssd1306.Device
+	display ssd1306.Device
 )
 
 func Task(i2c *machine.I2C) {
@@ -38,8 +28,6 @@ func Task(i2c *machine.I2C) {
 		Address: config.DISPLAY_I2C_ADDRESS,
 	})
 
-	currentScreen = SCREEN_LOG
-
 	display.ClearDisplay()
 
 	log.Logf("UI ready")
@@ -48,17 +36,8 @@ func Task(i2c *machine.I2C) {
 
 	for {
 		tickEncoders()
-		// log.Logf("Enc: %d, %d, %d, %d", Encoder[0].Value(), Encoder[1].Value(), Encoder[2].Value(), Encoder[3].Value())
 
-		// Handle display
-
-		display.ClearBuffer()
-
-		switch currentScreen {
-		case SCREEN_LOG:
-			renderLog()
-		}
-		display.Display()
+		menu.RenderMainMenu(&display, Encoder)
 
 		runtime.Gosched()
 	}

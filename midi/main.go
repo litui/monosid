@@ -5,9 +5,14 @@ import (
 	"runtime"
 
 	"github.com/litui/monosid/log"
+	"github.com/litui/monosid/sid"
 )
 
 func Task(uart *machine.UART) {
+	for !sid.IsReady() {
+		runtime.Gosched()
+	}
+
 	log.Logf("MIDI ready")
 
 	for {

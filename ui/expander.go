@@ -4,15 +4,15 @@ import (
 	"machine"
 
 	"github.com/litui/monosid/config"
+	"github.com/litui/monosid/ui/menu"
 	"github.com/litui/monosid/ui/rotaryencoder"
 	"tinygo.org/x/drivers/mcp23017"
 )
 
 var (
-	expReady bool = false
-
 	expander *mcp23017.Device
 	Encoder  []*rotaryencoder.Device
+	encReady bool = true
 
 	pinCache mcp23017.Pins
 )
@@ -20,7 +20,6 @@ var (
 func initEncoders(i2c *machine.I2C) {
 	// Expander / encoder setup
 	expander, _ = mcp23017.NewI2C(i2c, config.EXPANDER_I2C_ADDRESS)
-	expReady = true
 
 	Encoder = make([]*rotaryencoder.Device, 0)
 
@@ -35,11 +34,19 @@ func initEncoders(i2c *machine.I2C) {
 		Encoder = append(Encoder, &r)
 	}
 
+	// Lock in the range for the main menu encoder
+	Encoder[0].SetRange(0, int(menu.MENU_LENGTH)-1)
+
 	pinCache, _ = expander.GetPins()
+	encReady = true
 }
 
 // Since we can't use interrupts with the expander, here's a tick function
 func tickEncoders() {
+	if !encReady {
+		return
+	}
+
 	pins, _ := expander.GetPins()
 
 	for i, enc := range Encoder {

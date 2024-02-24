@@ -19,8 +19,8 @@ func main() {
 	go led.Task()
 	go ui.Task(i2c)
 
-	go midi.Task(uart)
 	go sid.Task()
+	go midi.Task(uart)
 
 	for {
 		time.Sleep(time.Second)

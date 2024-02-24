@@ -1,5 +1,0 @@
-package sid
-
-func SetVolume() {
-
-}
