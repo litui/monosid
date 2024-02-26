@@ -11,12 +11,12 @@ const (
 
 var (
 	LogLines []string
-	logReady bool = false
+	LogReady bool = false
 )
 
 // Write new log line to display buffer
 func Logf(format string, a ...any) {
-	if !logReady {
+	if !LogReady {
 		return
 	}
 
@@ -30,5 +30,5 @@ func Logf(format string, a ...any) {
 
 func InitLog() {
 	LogLines = make([]string, 0)
-	logReady = true
+	LogReady = true
 }

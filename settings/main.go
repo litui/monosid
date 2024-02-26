@@ -1,11 +1,18 @@
 package settings
 
-import "runtime"
+import (
+	"runtime"
+)
+
+var (
+	Settings StorageDevice
+)
 
 func Task() {
-	initFs()
+	Settings.Init()
 
 	for {
+		Settings.Tick()
 		runtime.Gosched()
 	}
 }

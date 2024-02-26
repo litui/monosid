@@ -2,8 +2,6 @@ package sid
 
 import (
 	"runtime"
-
-	"github.com/litui/monosid/log"
 )
 
 var (
@@ -12,7 +10,7 @@ var (
 
 func Task() {
 	if initGpio() && initClock() {
-		log.Logf("SID ready")
+		// log.Logf("SID ready")
 	}
 
 	// Sensible audio defaults until we get settings in

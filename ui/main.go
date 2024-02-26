@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	"github.com/litui/monosid/config"
-	"github.com/litui/monosid/log"
 	"github.com/litui/monosid/ui/menu"
 	"tinygo.org/x/drivers/ssd1306"
 )
@@ -30,7 +29,7 @@ func Task(i2c *machine.I2C) {
 
 	display.ClearDisplay()
 
-	log.Logf("UI ready")
+	// log.Logf("UI ready")
 
 	// tinyfont.WriteLineRotated(&display, &tinyfont.TomThumb, 0, 8, "Test", WHITE, tinyfont.NO_ROTATION)
 
