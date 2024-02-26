@@ -164,9 +164,47 @@ type StorageDevice struct {
 	lastPatchSave   time.Time
 }
 
-type NumericReturns interface {
+type Numerics interface {
 	~uint64 | ~uint32 | ~uint16 | ~uint8 | uint | ~int64 | ~int32 | ~int16 | ~int8 | ~int | ~float32 | ~float64
 }
+
+type QuantizerMode uint8
+type ScaleNote uint8
+type Scale uint8
+
+const (
+	QuantizerOff QuantizerMode = iota
+	QuantizerOn
+	QuantizerRoundUp
+	QuantizerRoundDown
+
+	NoteC ScaleNote = iota
+	NoteCSharp
+	NoteD
+	NoteDSharp
+	NoteE
+	NoteF
+	NoteFSharp
+	NoteG
+	NoteGSharp
+	NoteA
+	NoteASharp
+	NoteB
+
+	ScaleIonian Scale = iota
+	ScaleDorian
+	ScalePhrygian
+	ScaleLydian
+	ScaleMixolydian
+	ScaleAeolian
+	ScaleLocrian
+	ScalePentatonicMajor
+	ScalePentatonicMinor
+	ScaleEgyptian
+	ScaleBlues
+	ScaleHarmonicMajor
+	ScaleHarmonicMinor
+)
 
 var (
 	memDev = machine.Flash
@@ -350,11 +388,147 @@ func (m *StorageDevice) loadPatch(index uint8) bool {
 	return true
 }
 
+func (m *StorageDevice) SetQuantizerMode(mode QuantizerMode) {
+	setValue(&m.generalMem, settingsGeneralQuantizerModeOffset, mode, settingsGeneralQuantizerModeBits)
+}
+
+func (m *StorageDevice) ResetQuantizerMode() {
+	m.SetQuantizerMode(settingsGeneralQuantizerModeDefault)
+}
+
+func (m *StorageDevice) GetQuantizerMode() QuantizerMode {
+	return getValue[QuantizerMode](m.generalMem, settingsGeneralQuantizerModeOffset, settingsGeneralQuantizerModeBits)
+}
+
+func (m *StorageDevice) SetQuantizerRoot(note ScaleNote) {
+	setValue(&m.generalMem, settingsGeneralQuantizerRootOffset, note, settingsGeneralQuantizerRootBits)
+}
+
+func (m *StorageDevice) ResetQuantizerRoot() {
+	m.SetQuantizerRoot(settingsGeneralQuantizerRootDefault)
+}
+
+func (m *StorageDevice) GetQuantizerRoot() ScaleNote {
+	return getValue[ScaleNote](m.generalMem, settingsGeneralQuantizerRootOffset, settingsGeneralQuantizerRootBits)
+}
+
+func (m *StorageDevice) SetQuantizerScale(scale Scale) {
+	setValue(&m.generalMem, settingsGeneralQuantizerScaleOffset, scale, settingsGeneralQuantizerScaleBits)
+}
+
+func (m *StorageDevice) ResetQuantizerScale() {
+	m.SetQuantizerScale(settingsGeneralQuantizerScaleDefault)
+}
+
+func (m *StorageDevice) GetQuantizerScale() Scale {
+	return getValue[Scale](m.generalMem, settingsGeneralQuantizerScaleOffset, settingsGeneralQuantizerScaleBits)
+}
+
+func (m *StorageDevice) SetMidiChannel(chip uint8, voice uint8, channel uint8) {
+	chanSize := uint8(settingsGeneralMidiC1V1ChannelBits)
+	chanAddr := uint8(settingsGeneralMidiC1V1ChannelOffset)
+
+	if chip == 1 {
+		switch voice {
+		case 0:
+			chanAddr = settingsGeneralMidiC2V1ChannelOffset
+		case 1:
+			chanAddr = settingsGeneralMidiC2V2ChannelOffset
+		case 2:
+			chanAddr = settingsGeneralMidiC2V3ChannelOffset
+		}
+	} else {
+		switch voice {
+		case 0:
+			chanAddr = settingsGeneralMidiC1V1ChannelOffset
+		case 1:
+			chanAddr = settingsGeneralMidiC1V2ChannelOffset
+		case 2:
+			chanAddr = settingsGeneralMidiC1V3ChannelOffset
+		}
+	}
+	setValue(&m.generalMem, chanAddr, channel, chanSize)
+}
+
+func (m *StorageDevice) ResetMidiChannel(chip uint8, voice uint8) {
+	defVal := uint8(settingsGeneralMidiC1V1ChannelDefault)
+
+	if chip == 1 {
+		switch voice {
+		case 0:
+			defVal = settingsGeneralMidiC2V1ChannelDefault
+		case 1:
+			defVal = settingsGeneralMidiC2V2ChannelDefault
+		case 2:
+			defVal = settingsGeneralMidiC2V3ChannelDefault
+		}
+	} else {
+		switch voice {
+		case 0:
+			defVal = settingsGeneralMidiC1V1ChannelDefault
+		case 1:
+			defVal = settingsGeneralMidiC1V2ChannelDefault
+		case 2:
+			defVal = settingsGeneralMidiC1V3ChannelDefault
+		}
+	}
+
+	m.SetMidiChannel(chip, voice, defVal)
+}
+
+func (m *StorageDevice) GetMidiChannel(chip uint8, voice uint8) uint8 {
+	chanSize := uint8(settingsGeneralMidiC1V1ChannelBits)
+	chanAddr := uint8(settingsGeneralMidiC1V1ChannelOffset)
+
+	if chip == 1 {
+		switch voice {
+		case 0:
+			chanAddr = settingsGeneralMidiC2V1ChannelOffset
+		case 1:
+			chanAddr = settingsGeneralMidiC2V2ChannelOffset
+		case 2:
+			chanAddr = settingsGeneralMidiC2V3ChannelOffset
+		}
+	} else {
+		switch voice {
+		case 0:
+			chanAddr = settingsGeneralMidiC1V1ChannelOffset
+		case 1:
+			chanAddr = settingsGeneralMidiC1V2ChannelOffset
+		case 2:
+			chanAddr = settingsGeneralMidiC1V3ChannelOffset
+		}
+	}
+
+	return getValue[uint8](m.generalMem, chanAddr, chanSize)
+}
+
+func (m *StorageDevice) SetSelectedPatch(index uint8) {
+	setValue(&m.generalMem, settingsGeneralPatchSelOffset, index, settingsGeneralPatchSelBits)
+}
+
+func (m *StorageDevice) ResetSelectedPatch() {
+	m.SetSelectedPatch(settingsGeneralPatchSelDefault)
+}
+
 func (m *StorageDevice) GetSelectedPatch() uint8 {
 	return getValue[uint8](m.generalMem, settingsGeneralPatchSelOffset, settingsGeneralPatchSelBits)
 }
 
-func getValue[ReturnType NumericReturns](source uint64, offset uint8, length uint8) ReturnType {
+func setValue[InputType Numerics](target *uint64, offset uint8, data InputType, length uint8) {
+	for i := 0; i < int(length); i++ {
+		bitVal := (uint64(data) >> i) & 1
+		if bitVal == 1 {
+			// Set
+			*target |= (uint64(1) << offset)
+		} else {
+			// Clear
+			*target &= ^(uint64(1) << offset)
+		}
+	}
+}
+
+func getValue[ReturnType Numerics](source uint64, offset uint8, length uint8) ReturnType {
 	retval := uint64(0)
 	for i := 0; i < int(length); i++ {
 		retval |= ((source >> (uint64(i) + uint64(offset))) & 1) << i
