@@ -3,6 +3,7 @@ package sid
 import (
 	"runtime"
 
+	"github.com/litui/monosid/shared"
 	"github.com/litui/monosid/sid/chip"
 	"github.com/litui/monosid/sid/gpio"
 )
@@ -22,7 +23,7 @@ func Task() {
 		s.SetFilterCutoff(1024)
 		s.SetFilterRes(0)
 		for vi, v := range s.Voice {
-			s.SetFilterEn(uint8(vi), false)
+			s.SetFilterEn(shared.VoiceIndex(vi), false)
 			v.SetEnvelope(1, 0, 6, 8)
 			v.SetWaveform(false, true, false, false)
 			v.SetPulseWidth(0.5)

@@ -3,6 +3,7 @@ package voice
 import (
 	"math"
 
+	"github.com/litui/monosid/settings"
 	"github.com/litui/monosid/shared"
 	"github.com/litui/monosid/sid/gpio"
 )
@@ -18,7 +19,7 @@ const (
 )
 
 type Voice struct {
-	index uint8
+	index shared.VoiceIndex
 	chip  shared.SidChip
 
 	// Pitch & Timbre
@@ -26,40 +27,18 @@ type Voice struct {
 	dutyCycle float32
 
 	// Note options
-	gate     bool
-	sync     bool
-	ringMod  bool
-	test     bool
-	triangle bool
-	sawtooth bool
-	pulse    bool
-	noise    bool
-
-	// Envelope
-	attack  shared.AttackRate
-	decay   shared.DecayRate
-	sustain uint8
-	release shared.ReleaseRate
+	gate bool
+	test bool
 }
 
-func New(index uint8, chip shared.SidChip) Voice {
+func New(index shared.VoiceIndex, chip shared.SidChip) Voice {
 	return Voice{
 		index:     index,
 		chip:      chip,
 		freq:      0,
 		dutyCycle: 0.5,
 		gate:      false,
-		sync:      false,
-		ringMod:   false,
 		test:      false,
-		triangle:  false,
-		sawtooth:  true,
-		pulse:     false,
-		noise:     false,
-		attack:    0,
-		decay:     0,
-		sustain:   6,
-		release:   8,
 	}
 }
 
@@ -79,6 +58,7 @@ func (v *Voice) SetPulseWidth(dutyCycle float32) {
 	v.dutyCycle = dutyCycle
 
 	pulseWidth := uint16(math.Round(float64(dutyCycle*4096 - 1)))
+	settings.Storage.SetVoicePW(v.chip, v.index, pulseWidth)
 
 	regPWLo := uint8(7*v.index + SID_REG_VOICE_PW_LO)
 	regPWHi := uint8(7*v.index + SID_REG_VOICE_PW_HI)
@@ -88,42 +68,54 @@ func (v *Voice) SetPulseWidth(dutyCycle float32) {
 }
 
 func (v *Voice) SetEnvelope(attack shared.AttackRate, decay shared.DecayRate, sustain uint8, release shared.ReleaseRate) {
-	v.attack = attack & 0xf
-	v.decay = decay & 0xf
-	v.sustain = sustain & 0xf
-	v.release = release & 0xf
+	settings.Storage.SetVoiceAttack(v.chip, v.index, attack&0xf)
+	settings.Storage.SetVoiceDecay(v.chip, v.index, decay&0xf)
+	settings.Storage.SetVoiceSustain(v.chip, v.index, sustain&0xf)
+	settings.Storage.SetVoiceRelease(v.chip, v.index, release&0xf)
 
 	regAD := uint8(7*v.index + SID_REG_VOICE_AD)
 	regSR := uint8(7*v.index + SID_REG_VOICE_SR)
 
-	adBits := uint8(v.attack)<<4 | uint8(v.decay)
-	srBits := uint8(v.sustain)<<4 | uint8(v.release)
+	adBits := uint8(attack&0xf)<<4 | uint8(decay&0xf)
+	srBits := uint8(sustain&0xf)<<4 | uint8(release&0xf)
 
 	gpio.WriteReg(v.chip, regAD, adBits)
 	gpio.WriteReg(v.chip, regSR, srBits)
 }
 
 func (v *Voice) SetAttack(attack shared.AttackRate) {
-	v.SetEnvelope(attack, v.decay, v.sustain, v.release)
+	decay := settings.Storage.GetVoiceDecay(v.chip, v.index)
+	sustain := settings.Storage.GetVoiceSustain(v.chip, v.index)
+	release := settings.Storage.GetVoiceRelease(v.chip, v.index)
+	v.SetEnvelope(attack, decay, sustain, release)
 }
 
 func (v *Voice) SetDecay(decay shared.DecayRate) {
-	v.SetEnvelope(v.attack, decay, v.sustain, v.release)
+	attack := settings.Storage.GetVoiceAttack(v.chip, v.index)
+	sustain := settings.Storage.GetVoiceSustain(v.chip, v.index)
+	release := settings.Storage.GetVoiceRelease(v.chip, v.index)
+	v.SetEnvelope(attack, decay, sustain, release)
 }
 
 func (v *Voice) SetSustain(sustain uint8) {
-	v.SetEnvelope(v.attack, v.decay, sustain, v.release)
+	attack := settings.Storage.GetVoiceAttack(v.chip, v.index)
+	decay := settings.Storage.GetVoiceDecay(v.chip, v.index)
+	release := settings.Storage.GetVoiceRelease(v.chip, v.index)
+	v.SetEnvelope(attack, decay, sustain, release)
 }
 
 func (v *Voice) SetRelease(release shared.ReleaseRate) {
-	v.SetEnvelope(v.attack, v.decay, v.sustain, release)
+	attack := settings.Storage.GetVoiceAttack(v.chip, v.index)
+	decay := settings.Storage.GetVoiceDecay(v.chip, v.index)
+	sustain := settings.Storage.GetVoiceSustain(v.chip, v.index)
+	v.SetEnvelope(attack, decay, sustain, release)
 }
 
 func (v *Voice) SetWaveform(triangle bool, sawtooth bool, pulse bool, noise bool) {
-	v.triangle = triangle
-	v.sawtooth = sawtooth
-	v.pulse = pulse
-	v.noise = noise
+	settings.Storage.SetVoiceTriangle(v.chip, v.index, triangle)
+	settings.Storage.SetVoiceSawtooth(v.chip, v.index, sawtooth)
+	settings.Storage.SetVoicePulse(v.chip, v.index, pulse)
+	settings.Storage.SetVoiceNoise(v.chip, v.index, noise)
 }
 
 func (v *Voice) Trigger() {
@@ -132,13 +124,13 @@ func (v *Voice) Trigger() {
 	v.gate = true
 
 	outBits := uint8(shared.BToI(v.gate))
-	outBits |= shared.BToI(v.sync) << 1
-	outBits |= shared.BToI(v.ringMod) << 2
+	outBits |= shared.BToI(settings.Storage.GetVoiceSync(v.chip, v.index)) << 1
+	outBits |= shared.BToI(settings.Storage.GetVoiceRingMod(v.chip, v.index)) << 2
 	outBits |= shared.BToI(v.test) << 3
-	outBits |= shared.BToI(v.triangle) << 4
-	outBits |= shared.BToI(v.sawtooth) << 5
-	outBits |= shared.BToI(v.pulse) << 6
-	outBits |= shared.BToI(v.noise) << 7
+	outBits |= shared.BToI(settings.Storage.GetVoiceTriangle(v.chip, v.index)) << 4
+	outBits |= shared.BToI(settings.Storage.GetVoiceSawtooth(v.chip, v.index)) << 5
+	outBits |= shared.BToI(settings.Storage.GetVoicePulse(v.chip, v.index)) << 6
+	outBits |= shared.BToI(settings.Storage.GetVoiceNoise(v.chip, v.index)) << 7
 
 	gpio.WriteReg(v.chip, regCtrl, outBits)
 }
@@ -149,13 +141,13 @@ func (v *Voice) Release() {
 	v.gate = false
 
 	outBits := uint8(shared.BToI(v.gate))
-	outBits |= shared.BToI(v.sync) << 1
-	outBits |= shared.BToI(v.ringMod) << 2
+	outBits |= shared.BToI(settings.Storage.GetVoiceSync(v.chip, v.index)) << 1
+	outBits |= shared.BToI(settings.Storage.GetVoiceRingMod(v.chip, v.index)) << 2
 	outBits |= shared.BToI(v.test) << 3
-	outBits |= shared.BToI(v.triangle) << 4
-	outBits |= shared.BToI(v.sawtooth) << 5
-	outBits |= shared.BToI(v.pulse) << 6
-	outBits |= shared.BToI(v.noise) << 7
+	outBits |= shared.BToI(settings.Storage.GetVoiceTriangle(v.chip, v.index)) << 4
+	outBits |= shared.BToI(settings.Storage.GetVoiceSawtooth(v.chip, v.index)) << 5
+	outBits |= shared.BToI(settings.Storage.GetVoicePulse(v.chip, v.index)) << 6
+	outBits |= shared.BToI(settings.Storage.GetVoiceNoise(v.chip, v.index)) << 7
 
 	gpio.WriteReg(v.chip, regCtrl, outBits)
 }

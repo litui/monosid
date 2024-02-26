@@ -359,12 +359,12 @@ func (m *StorageDevice) GetVoiceSync(chip shared.SidChip, voice shared.VoiceInde
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoiceRingMod(chip shared.SidChip, voice shared.VoiceIndex, sync bool) {
+func (m *StorageDevice) SetVoiceRingMod(chip shared.SidChip, voice shared.VoiceIndex, ringMod bool) {
 	addr := uint8(settingsPatchVRingModOffset)
 	size := uint8(settingsPatchVRingModBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sync), size)
+	setValue(&m.patchMem[chip][bank], addr, shared.BToI(ringMod), size)
 }
 
 func (m *StorageDevice) ResetVoiceRingMod(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -379,12 +379,12 @@ func (m *StorageDevice) GetVoiceRingMod(chip shared.SidChip, voice shared.VoiceI
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoiceTriangle(chip shared.SidChip, voice shared.VoiceIndex, sync bool) {
+func (m *StorageDevice) SetVoiceTriangle(chip shared.SidChip, voice shared.VoiceIndex, triangle bool) {
 	addr := uint8(settingsPatchVTriangleOffset)
 	size := uint8(settingsPatchVTriangleBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sync), size)
+	setValue(&m.patchMem[chip][bank], addr, shared.BToI(triangle), size)
 }
 
 func (m *StorageDevice) ResetVoiceTriangle(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -399,12 +399,12 @@ func (m *StorageDevice) GetVoiceTriangle(chip shared.SidChip, voice shared.Voice
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoiceSawtooth(chip shared.SidChip, voice shared.VoiceIndex, sync bool) {
+func (m *StorageDevice) SetVoiceSawtooth(chip shared.SidChip, voice shared.VoiceIndex, sawtooth bool) {
 	addr := uint8(settingsPatchVSawtoothOffset)
 	size := uint8(settingsPatchVSawtoothBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sync), size)
+	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sawtooth), size)
 }
 
 func (m *StorageDevice) ResetVoiceSawtooth(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -419,12 +419,12 @@ func (m *StorageDevice) GetVoiceSawtooth(chip shared.SidChip, voice shared.Voice
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoicePulse(chip shared.SidChip, voice shared.VoiceIndex, sync bool) {
+func (m *StorageDevice) SetVoicePulse(chip shared.SidChip, voice shared.VoiceIndex, pulse bool) {
 	addr := uint8(settingsPatchVPulseOffset)
 	size := uint8(settingsPatchVPulseBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sync), size)
+	setValue(&m.patchMem[chip][bank], addr, shared.BToI(pulse), size)
 }
 
 func (m *StorageDevice) ResetVoicePulse(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -439,12 +439,12 @@ func (m *StorageDevice) GetVoicePulse(chip shared.SidChip, voice shared.VoiceInd
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoiceNoise(chip shared.SidChip, voice shared.VoiceIndex, sync bool) {
+func (m *StorageDevice) SetVoiceNoise(chip shared.SidChip, voice shared.VoiceIndex, noise bool) {
 	addr := uint8(settingsPatchVNoiseOffset)
 	size := uint8(settingsPatchVNoiseBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, shared.BToI(sync), size)
+	setValue(&m.patchMem[chip][bank], addr, shared.BToI(noise), size)
 }
 
 func (m *StorageDevice) ResetVoiceNoise(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -459,12 +459,12 @@ func (m *StorageDevice) GetVoiceNoise(chip shared.SidChip, voice shared.VoiceInd
 	return shared.IToB(getValue[uint8](m.patchMem[chip][bank], addr, size))
 }
 
-func (m *StorageDevice) SetVoicePW(chip shared.SidChip, voice shared.VoiceIndex, pulsewidth uint16) {
+func (m *StorageDevice) SetVoicePW(chip shared.SidChip, voice shared.VoiceIndex, pulseWidth uint16) {
 	addr := uint8(settingsPatchVPWOffset)
 	size := uint8(settingsPatchVPWBits)
 	bank := patchBank(voice + 1)
 
-	setValue(&m.patchMem[chip][bank], addr, pulsewidth, size)
+	setValue(&m.patchMem[chip][bank], addr, pulseWidth, size)
 }
 
 func (m *StorageDevice) ResetVoicePW(chip shared.SidChip, voice shared.VoiceIndex) {
