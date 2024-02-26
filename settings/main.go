@@ -2,17 +2,19 @@ package settings
 
 import (
 	"runtime"
+
+	"github.com/litui/monosid/settings/storage"
 )
 
 var (
-	Settings StorageDevice
+	Storage storage.StorageDevice
 )
 
 func Task() {
-	Settings.Init()
+	Storage.Init()
 
 	for {
-		Settings.Tick()
+		Storage.Tick()
 		runtime.Gosched()
 	}
 }

@@ -2,16 +2,19 @@ package sid
 
 import (
 	"runtime"
+
+	"github.com/litui/monosid/sid/chip"
+	"github.com/litui/monosid/sid/gpio"
 )
 
 var (
-	SID = [2]SIDDevice{NewSID(0), NewSID(1)}
+	SID = [2]chip.SIDDevice{chip.New(0), chip.New(1)}
+
+	ready bool = false
 )
 
 func Task() {
-	if initGpio() && initClock() {
-		// log.Logf("SID ready")
-	}
+	gpio.Init()
 
 	// Sensible audio defaults until we get settings in
 	for _, s := range SID {
@@ -26,11 +29,13 @@ func Task() {
 		}
 	}
 
+	ready = true
+
 	for {
 		runtime.Gosched()
 	}
 }
 
 func IsReady() bool {
-	return clockReady
+	return ready
 }

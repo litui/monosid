@@ -1,17 +1,11 @@
-package sid
+package gpio
 
 import (
 	"machine"
 	"time"
 
 	"github.com/litui/monosid/config"
-)
-
-type chip uint8
-
-const (
-	chipLeft chip = iota
-	chipRight
+	"github.com/litui/monosid/shared"
 )
 
 var (
@@ -68,7 +62,9 @@ func initGpio() bool {
 	return gpioReady
 }
 
-func initClock() bool {
+func Init() bool {
+	initGpio()
+
 	if !gpioReady || clockReady {
 		return clockReady
 	}
@@ -91,8 +87,8 @@ func initClock() bool {
 }
 
 // Enable one CS pin and disable the other. index is 0 or 1
-func csOn(index chip) {
-	pol := intToBool(uint8(index))
+func csOn(index shared.SidChip) {
+	pol := shared.IToB(uint8(index))
 	config.SID_CS_PINS[0].Set(pol)
 	config.SID_CS_PINS[1].Set(!pol)
 }
@@ -120,7 +116,7 @@ func setAddr(address uint8) bool {
 	}
 
 	for i := 0; i < 5; i++ {
-		bitVal := intToBool((address >> i) & 1)
+		bitVal := shared.IToB((address >> i) & 1)
 		config.SID_ADDR_PINS[i].Set(bitVal)
 	}
 	return true
@@ -133,14 +129,14 @@ func setData(data uint8) bool {
 	}
 
 	for i := 0; i < 8; i++ {
-		bitVal := intToBool((data >> i) & 1)
+		bitVal := shared.IToB((data >> i) & 1)
 		config.SID_DATA_PINS[i].Set(bitVal)
 	}
 	return true
 }
 
 // Writes data to specified SID chip
-func writeReg(chip chip, address uint8, data uint8) bool {
+func WriteReg(chip shared.SidChip, address uint8, data uint8) bool {
 	if !clockReady {
 		return false
 	}
@@ -156,12 +152,5 @@ func writeReg(chip chip, address uint8, data uint8) bool {
 
 	setData(0)
 
-	return true
-}
-
-func intToBool(value uint8) bool {
-	if value == 0 {
-		return false
-	}
 	return true
 }

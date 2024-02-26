@@ -1,14 +1,12 @@
-package sid
+package chip
+
+import (
+	"github.com/litui/monosid/shared"
+	"github.com/litui/monosid/sid/chip/voice"
+	"github.com/litui/monosid/sid/gpio"
+)
 
 const (
-	SID_REG_VOICE_FREQ_LO = 0
-	SID_REG_VOICE_FREQ_HI = 1
-	SID_REG_VOICE_PW_LO   = 2
-	SID_REG_VOICE_PW_HI   = 3
-	SID_REG_VOICE_CTRL    = 4
-	SID_REG_VOICE_AD      = 5
-	SID_REG_VOICE_SR      = 6
-
 	SID_REG_FILT_FC_LO    = 21
 	SID_REG_FILT_FC_HI    = 22
 	SID_REG_RES_FILT_EN   = 23
@@ -16,7 +14,7 @@ const (
 )
 
 type SIDDevice struct {
-	chip chip
+	chip shared.SidChip
 
 	volume uint8
 
@@ -28,11 +26,11 @@ type SIDDevice struct {
 	filterCutoff uint16
 	filterRes    uint8
 
-	Voice         [3]Voice
+	Voice         [3]voice.Voice
 	voiceFilterEn [3]bool
 }
 
-func NewSID(chip chip) SIDDevice {
+func New(chip shared.SidChip) SIDDevice {
 	dev := SIDDevice{
 		chip:          chip,
 		volume:        6,
@@ -42,7 +40,7 @@ func NewSID(chip chip) SIDDevice {
 		filter3Off:    false,
 		filterCutoff:  0,
 		filterRes:     0,
-		Voice:         [3]Voice{NewVoice(0, chip), NewVoice(1, chip), NewVoice(2, chip)},
+		Voice:         [3]voice.Voice{voice.New(0, chip), voice.New(1, chip), voice.New(2, chip)},
 		voiceFilterEn: [3]bool{false, false, false},
 	}
 	return dev
@@ -57,7 +55,7 @@ func (sd *SIDDevice) SetVolume(volume uint8) {
 	outbits |= btoi(sd.filterHP) << 6
 	outbits |= btoi(sd.filter3Off) << 7
 
-	writeReg(sd.chip, SID_REG_FILT_MODE_VOL, outbits)
+	gpio.WriteReg(sd.chip, SID_REG_FILT_MODE_VOL, outbits)
 }
 
 func (sd *SIDDevice) SetFilterMode(lp bool, bp bool, hp bool) {
@@ -71,7 +69,7 @@ func (sd *SIDDevice) SetFilterMode(lp bool, bp bool, hp bool) {
 	outbits |= btoi(hp) << 6
 	outbits |= btoi(sd.filter3Off) << 7
 
-	writeReg(sd.chip, SID_REG_FILT_MODE_VOL, outbits)
+	gpio.WriteReg(sd.chip, SID_REG_FILT_MODE_VOL, outbits)
 }
 
 func (sd *SIDDevice) SetFilterCutoff(cutoff uint16) {
@@ -80,8 +78,8 @@ func (sd *SIDDevice) SetFilterCutoff(cutoff uint16) {
 	cutoffLo := uint8(cutoff & 0b111)
 	cutoffHi := uint8((cutoff >> 3) & 0xFF)
 
-	writeReg(sd.chip, SID_REG_FILT_FC_LO, cutoffLo)
-	writeReg(sd.chip, SID_REG_FILT_FC_HI, cutoffHi)
+	gpio.WriteReg(sd.chip, SID_REG_FILT_FC_LO, cutoffLo)
+	gpio.WriteReg(sd.chip, SID_REG_FILT_FC_HI, cutoffHi)
 }
 
 func (sd *SIDDevice) SetFilterRes(resonance uint8) {
@@ -93,7 +91,7 @@ func (sd *SIDDevice) SetFilterRes(resonance uint8) {
 	}
 	outbits |= sd.filterRes << 4
 
-	writeReg(sd.chip, SID_REG_RES_FILT_EN, outbits)
+	gpio.WriteReg(sd.chip, SID_REG_RES_FILT_EN, outbits)
 }
 
 func (sd *SIDDevice) SetFilterEn(voiceIndex uint8, enable bool) {
@@ -105,7 +103,7 @@ func (sd *SIDDevice) SetFilterEn(voiceIndex uint8, enable bool) {
 	}
 	outbits |= sd.filterRes << 4
 
-	writeReg(sd.chip, SID_REG_RES_FILT_EN, outbits)
+	gpio.WriteReg(sd.chip, SID_REG_RES_FILT_EN, outbits)
 }
 
 func btoi(tf bool) uint8 {
