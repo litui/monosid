@@ -61,8 +61,8 @@ var (
 	SID_PWM = machine.PWM6
 
 	SID_CS_PINS = [2]machine.Pin{
-		machine.GP16,
 		machine.GP17,
+		machine.GP16,
 	}
 	SID_ADDR_PINS = [5]machine.Pin{
 		machine.GP2,

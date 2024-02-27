@@ -205,7 +205,7 @@ func (m *StorageDevice) SetMidiChannel(chip shared.SidChip, voice shared.VoiceIn
 			chanAddr = settingsGeneralMidiC1V3ChannelOffset
 		}
 	}
-	setValue(&m.generalMem, chanAddr, channel, chanSize)
+	setValue[uint8](&m.generalMem, chanAddr, channel, chanSize)
 }
 
 func (m *StorageDevice) ResetMidiChannel(chip shared.SidChip, voice shared.VoiceIndex) {

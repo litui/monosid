@@ -69,10 +69,10 @@ func setValue[InputType Numerics](target *uint64, offset uint8, data InputType, 
 		bitVal := (uint64(data) >> i) & 1
 		if bitVal == 1 {
 			// Set
-			*target |= (uint64(1) << offset)
+			*target |= uint64(1) << (offset + uint8(i))
 		} else {
 			// Clear
-			*target &= ^(uint64(1) << offset)
+			*target &= ^(uint64(1) << (offset + uint8(i)))
 		}
 	}
 }

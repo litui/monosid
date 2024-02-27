@@ -1,7 +1,7 @@
 package notes
 
 const (
-	FirstNoteMidiOffset = 0
+	FirstNoteMidiOffset = -12
 
 	NOTE_C0  = 16.35
 	NAME_C0  = "C0"

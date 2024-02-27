@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	clickSum = 2
+	clickSum = 4
 )
 
 var (
@@ -138,4 +138,10 @@ func (enc *Device) Range() (int, int) {
 func (enc *Device) SetRange(bottom int, top int) {
 	enc.rangeBottom = bottom
 	enc.rangeTop = top
+
+	if enc.value < enc.rangeBottom {
+		enc.value = enc.rangeBottom * clickSum
+	} else if enc.value > enc.rangeTop {
+		enc.value = enc.rangeTop * clickSum
+	}
 }

@@ -1,16 +1,20 @@
 package midi
 
 import (
+	"math"
+
 	"github.com/litui/monosid/led"
 	"github.com/litui/monosid/log"
 	"github.com/litui/monosid/midi/notes"
+	"github.com/litui/monosid/settings"
+	"github.com/litui/monosid/shared"
 	"github.com/litui/monosid/sid"
 )
 
 var (
-	LastNote = [2][3]int8{
-		{0, 0, 0},
-		{0, 0, 0},
+	CurrentNote = [2][3]int8{
+		{-1, -1, -1},
+		{-1, -1, -1},
 	}
 )
 
@@ -20,11 +24,12 @@ func handleNoteOff(channel uint8, note uint8, velocity uint8) {
 
 	for si, s := range sid.SID {
 		for vi, v := range s.Voice {
-			if MIDIVoiceMap[si][vi] != channel {
+			if settings.Storage.GetMidiChannel(shared.SidChip(si), shared.VoiceIndex(vi)) != channel {
 				continue
 			}
 
 			v.Release()
+			CurrentNote[si][vi] = -1 // off
 		}
 	}
 }
@@ -33,22 +38,33 @@ func handleNoteOn(channel uint8, note uint8, velocity uint8) {
 	led.Flash()
 	log.Logf("NoteOn - Ch%d - %d - %d", channel, note, velocity)
 
-	if note+notes.FirstNoteMidiOffset >= uint8(len(notes.NotePitches)) {
+	if int8(note)+notes.FirstNoteMidiOffset >= int8(len(notes.NotePitches)) {
 		return
-	} else if note < notes.FirstNoteMidiOffset {
+	} else if int8(note) < notes.FirstNoteMidiOffset {
 		return
 	}
 
-	baseFreq := notes.NotePitches[note+notes.FirstNoteMidiOffset]
+	baseFreq := notes.NotePitches[int8(note)+notes.FirstNoteMidiOffset]
 
 	for si, s := range sid.SID {
 		for vi, v := range s.Voice {
-			if MIDIVoiceMap[si][vi] != channel {
+			chip := shared.SidChip(si)
+			voice := shared.VoiceIndex(vi)
+
+			if settings.Storage.GetMidiChannel(chip, voice) != channel {
 				continue
 			}
 
-			v.SetFrequency(baseFreq)
+			cents := settings.Storage.GetVoiceDetune(chip, voice)
+			adjFreq := baseFreq
+
+			if cents != 0 {
+				adjFreq = baseFreq * float32(math.Pow(2.0, float64(cents)/1200.0))
+			}
+
+			v.SetFrequency(adjFreq)
 			v.Trigger()
+			CurrentNote[si][vi] = int8(note)
 		}
 	}
 }
