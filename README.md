@@ -7,3 +7,14 @@ This started as part of a successful attempt to reverse engineer the Raspberry P
 While I started writing this custom firmware in PlatformIO/Arduino, I later changed gears and started rewriting what I'd completed in TinyGo after realizing its RP2040 support was mature enough to make this work and provide me a good opportunity to learn Golang.
 
 I haven't yet finished rewriting my custom firmware much less completed the full feature set, but it's coming along nicely.
+
+### To-do
+
+* Configuration screens for all basic parameters
+    * Envelope (ADSR)
+    * Waveforms
+    * Pulse width
+    * Filter cutoff and resonance
+    * Ring modulation
+ * Patch save and load functionality
+ * Extras
