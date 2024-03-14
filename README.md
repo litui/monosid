@@ -1,6 +1,6 @@
 ## MONOSID
 
-This is 3rd-party, work-in-progress firmware by Litui (Aria Burrell) for the MIDISID (original hardware by Shiela Dixon and available on [Tindie](https://www.tindie.com/products/shieladixon/midisid-midi-in-2-x-sid-clones/)).
+This is 3rd-party, work-in-progress firmware by Litui (Aria Burrell) for the MIDISID (original hardware by Shiela Dixon and available on [Tindie](https://www.tindie.com/products/shieladixon/midisid-midi-in-2-x-sid-clones/)). This is not yet a feature-complete synthesizer firmware! If you flash it and need to recover, you will need to obtain the latest version of the original firmware from the hardware creator.
 
 This started as part of a successful attempt to reverse engineer the Raspberry Pi Pico-based MIDISID hardware and write my own custom-tailored firmware. The original firmware is very good but tailored more toward General MIDI and the like. I wanted the SID to act more like a mono synth with more immediate controls for live techno/chiptune performance.
 
