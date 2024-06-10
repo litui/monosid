@@ -11,8 +11,6 @@ I haven't yet finished rewriting my custom firmware much less completed the full
 ### To-do
 
 * Configuration screens for all basic parameters
-    * Envelope (ADSR)
-    * Waveforms
     * Pulse width
     * Filter cutoff and resonance
     * Ring modulation
