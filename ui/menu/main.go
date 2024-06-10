@@ -10,19 +10,19 @@ import (
 	"tinygo.org/x/tinyfont/notosans"
 )
 
-type Menu int
+type Menu uint8
 
 const (
-	DEBUG_LOG Menu = iota
-	INCOMING_NOTE
+	INCOMING_NOTE Menu = iota
 	MIDI_CHANNEL
+	WAVEFORM
 	DETUNE_CENTS
-	// WAVEFORM
 	// PULSEWIDTH
 	// ATTACK
 	// DECAY
 	// SUSTAIN
 	// RELEASE
+	DEBUG_LOG
 	MENU_LENGTH
 )
 
@@ -50,11 +50,6 @@ var (
 
 	// bottom, top
 	encoderRange = [MENU_LENGTH][3][2]int{
-		{ // DEBUG_LOG
-			{0, 0},
-			{0, 0},
-			{0, 0},
-		},
 		{ // INCOMING_NOTE
 			{0, 0},
 			{0, 0},
@@ -65,10 +60,20 @@ var (
 			{0, 15},
 			{0, 15},
 		},
+		{ // WAVEFORM
+			{1, 15},
+			{1, 15},
+			{1, 15},
+		},
 		{ // DETUNE CENTS
 			{-99, 99},
 			{-99, 99},
 			{-99, 99},
+		},
+		{ // DEBUG_LOG
+			{0, 0},
+			{0, 0},
+			{0, 0},
 		},
 	}
 )
@@ -84,6 +89,9 @@ func RenderMainMenu(display *ssd1306.Device, subEncoder []*rotaryencoder.Device)
 	case MIDI_CHANNEL:
 		processChannelMenuEncoders(subEncoder)
 		renderChannelMenu(display)
+	case WAVEFORM:
+		processWaveformMenuEncoders(subEncoder)
+		renderWaveformMenu(display)
 	case DETUNE_CENTS:
 		processDetuneMenuEncoders(subEncoder)
 		renderDetuneMenu(display)
@@ -112,6 +120,8 @@ func SetupEncoderMenuRanges(subEncoder []*rotaryencoder.Device) {
 	case INCOMING_NOTE:
 	case MIDI_CHANNEL:
 		initChannelMenuValues(subEncoder)
+	case WAVEFORM:
+		initWaveformMenuValues(subEncoder)
 	case DETUNE_CENTS:
 		initDetuneMenuValues(subEncoder)
 	}
