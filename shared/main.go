@@ -37,6 +37,15 @@ const (
 	Attack6000MS
 )
 
+var (
+	AttackText = []string{
+		"2ms", "8ms", "16ms", "24ms",
+		"38ms", "56ms", "68ms", "80ms",
+		".1s", ".25s", ".5s", ".8s",
+		"1s", "3s", "5s", "6s",
+	}
+)
+
 const (
 	Release6MS ReleaseRate = iota
 	Release24MS
@@ -56,6 +65,15 @@ const (
 	Release24000MS
 )
 
+var (
+	ReleaseText = []string{
+		"6ms", "24ms", "48ms", "72ms",
+		".114s", ".168s", ".204s", ".24s",
+		".3s", ".75s", "1.5s", "2.4s",
+		"3s", "9s", "15s", "24s",
+	}
+)
+
 const (
 	Decay6MS DecayRate = iota
 	Decay24MS
@@ -73,6 +91,15 @@ const (
 	Decay9000MS
 	Decay15000MS
 	Decay24000MS
+)
+
+var (
+	DecayText = []string{
+		"6ms", "24ms", "48ms", "72ms",
+		".114s", ".168s", ".204s", ".24s",
+		".3s", ".75s", "1.5s", "2.4s",
+		"3s", "9s", "15s", "24s",
+	}
 )
 
 func BToI(trueOrFalse bool) uint8 {

@@ -18,10 +18,10 @@ const (
 	WAVEFORM
 	DETUNE_CENTS
 	// PULSEWIDTH
-	// ATTACK
-	// DECAY
-	// SUSTAIN
-	// RELEASE
+	ATTACK
+	DECAY
+	SUSTAIN
+	RELEASE
 	DEBUG_LOG
 	MENU_LENGTH
 )
@@ -70,6 +70,26 @@ var (
 			{-99, 99},
 			{-99, 99},
 		},
+		{ // ATTACK RATE
+			{0, 15},
+			{0, 15},
+			{0, 15},
+		},
+		{ // DECAY RATE
+			{0, 15},
+			{0, 15},
+			{0, 15},
+		},
+		{ // SUSTAIN LEVEL
+			{0, 15},
+			{0, 15},
+			{0, 15},
+		},
+		{ // RELEASE RATE
+			{0, 15},
+			{0, 15},
+			{0, 15},
+		},
 		{ // DEBUG_LOG
 			{0, 0},
 			{0, 0},
@@ -95,6 +115,18 @@ func RenderMainMenu(display *ssd1306.Device, subEncoder []*rotaryencoder.Device)
 	case DETUNE_CENTS:
 		processDetuneMenuEncoders(subEncoder)
 		renderDetuneMenu(display)
+	case ATTACK:
+		processAttackMenuEncoders(subEncoder)
+		renderAttackMenu(display)
+	case DECAY:
+		processDecayMenuEncoders(subEncoder)
+		renderDecayMenu(display)
+	case SUSTAIN:
+		processSustainMenuEncoders(subEncoder)
+		renderSustainMenu(display)
+	case RELEASE:
+		processReleaseMenuEncoders(subEncoder)
+		renderReleaseMenu(display)
 	}
 
 	display.Display()
@@ -124,6 +156,14 @@ func SetupEncoderMenuRanges(subEncoder []*rotaryencoder.Device) {
 		initWaveformMenuValues(subEncoder)
 	case DETUNE_CENTS:
 		initDetuneMenuValues(subEncoder)
+	case ATTACK:
+		initAttackMenuValues(subEncoder)
+	case DECAY:
+		initDecayMenuValues(subEncoder)
+	case SUSTAIN:
+		initSustainMenuValues(subEncoder)
+	case RELEASE:
+		initReleaseMenuValues(subEncoder)
 	}
 }
 
