@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/litui/monosid/settings"
+	"github.com/litui/monosid/sid"
 	"github.com/litui/monosid/ui/rotaryencoder"
 	"tinygo.org/x/drivers/ssd1306"
 )
@@ -22,6 +23,8 @@ func processLoadMenuEncoders(subEncoder []*rotaryencoder.Device) {
 
 	if subEncoder[1].SwitchWasClicked() && selectedPatch != -1 {
 		settings.Storage.Load(uint8(selectedPatch))
+		sid.SetupAfterLoad()
+
 		selectedPatch = selectedPatch
 		SaveLoadComplete = true
 	}

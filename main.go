@@ -25,6 +25,8 @@ func main() {
 	go sid.Task()
 	go midi.Task(uart)
 
+	sid.SetupAfterLoad()
+
 	for {
 		time.Sleep(time.Second)
 	}

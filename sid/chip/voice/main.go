@@ -58,6 +58,10 @@ func (v *Voice) SetPulseWidth(dutyCycle float32) {
 	v.dutyCycle = dutyCycle
 
 	pulseWidth := uint16(math.Round(float64(dutyCycle*4096 - 1)))
+	v.SetRawPulseWidth(pulseWidth)
+}
+
+func (v *Voice) SetRawPulseWidth(pulseWidth uint16) {
 	settings.Storage.SetVoicePW(v.chip, v.index, pulseWidth)
 
 	regPWLo := uint8(7*v.index + SID_REG_VOICE_PW_LO)

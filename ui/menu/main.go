@@ -15,6 +15,7 @@ type Menu uint8
 const (
 	INCOMING_NOTE Menu = iota
 	MIDI_CHANNEL
+	VOLUME
 	WAVEFORM
 	DETUNE_CENTS
 	// PULSEWIDTH
@@ -60,6 +61,11 @@ var (
 			{0, 15},
 			{0, 15},
 			{0, 15},
+		},
+		{ // MIDI_CHANNEL
+			{0, 15},
+			{0, 0},
+			{0, 0},
 		},
 		{ // WAVEFORM
 			{1, 15},
@@ -110,6 +116,9 @@ func RenderMainMenu(display *ssd1306.Device, subEncoder []*rotaryencoder.Device)
 	case MIDI_CHANNEL:
 		processChannelMenuEncoders(subEncoder)
 		renderChannelMenu(display)
+	case VOLUME:
+		processVolumeMenuEncoders(subEncoder)
+		renderVolumeMenu(display)
 	case WAVEFORM:
 		processWaveformMenuEncoders(subEncoder)
 		renderWaveformMenu(display)
@@ -153,6 +162,8 @@ func SetupEncoderMenuRanges(subEncoder []*rotaryencoder.Device) {
 	case INCOMING_NOTE:
 	case MIDI_CHANNEL:
 		initChannelMenuValues(subEncoder)
+	case VOLUME:
+		initVolumeMenuValues(subEncoder)
 	case WAVEFORM:
 		initWaveformMenuValues(subEncoder)
 	case DETUNE_CENTS:

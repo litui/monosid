@@ -13,6 +13,7 @@ I haven't yet finished rewriting my custom firmware much less completed the full
     * MIDI Channel
     * Selected patch
 * Patch settings
+    * Main volume (I know, weird that it's stored per-patch, but it connects with how it's dealt with on the SID)
     * Waveform
     * Detune (cents)
     * Attack rate
