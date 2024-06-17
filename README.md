@@ -8,11 +8,26 @@ While I started writing this custom firmware in PlatformIO/Arduino, I later chan
 
 I haven't yet finished rewriting my custom firmware much less completed the full feature set, but it's coming along nicely.
 
+### Working
+* General settings
+    * MIDI Channel
+    * Selected patch
+* Patch settings
+    * Waveform
+    * Detune (cents)
+    * Attack rate
+    * Decay rate
+    * Sustain level
+    * Release rate
+* Log view
+* Save/Load menu (press first encoder)
+    * Saving and loading works but hasn't been extensively tested for bugs
+
 ### To-do
 
 * Configuration screens for all basic parameters
+    * General volume setting
     * Pulse width
     * Filter cutoff and resonance
     * Ring modulation
- * Patch save and load functionality
  * Extras
