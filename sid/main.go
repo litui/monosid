@@ -48,6 +48,19 @@ func SetupAfterLoad() {
 func Task() {
 	gpio.Init()
 
+	// Sensible audio defaults until we get settings in
+	for _, s := range SID {
+		s.SetVolume(4)
+		s.SetFilterCutoff(1024)
+		s.SetFilterRes(0)
+		for vi, v := range s.Voice {
+			s.SetFilterEn(shared.VoiceIndex(vi), false)
+			v.SetEnvelope(1, 0, 6, 8)
+			v.SetWaveform(false, true, false, false)
+			v.SetPulseWidth(0.5)
+		}
+	}
+
 	ready = true
 
 	for {
