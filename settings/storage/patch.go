@@ -12,10 +12,10 @@ const (
 	// Storing SIDs separately just in case I decide to break out left and right settings in places (eg detune?)
 
 	// Make sure first patch is on a 4096 byte (0x1000h) boundary for writing)
-	firstPatchStorageAddr = 0x101000
-	patchLengthBits       = 512
-	patchLengthBytes      = patchLengthBits / 8
-	patchCount            = 128
+	firstPatchStorageOffset = 0x1000
+	patchLengthBits         = 512
+	patchLengthBytes        = patchLengthBits / 8
+	patchCount              = 128
 
 	sid1Addr   = 0
 	sid1V1Addr = 64
@@ -145,34 +145,41 @@ func (m *StorageDevice) newPatch() {
 }
 
 func (m *StorageDevice) savePatch(index uint8) bool {
-	// Determine which 4096 byte bank we'll need to load up (so we don't lose other patch data when writing)
-	bankAddress := int64(firstPatchStorageAddr)
-	byteOffset := 0
-	if index > 64 {
-		bankAddress = int64(firstPatchStorageAddr + flashBlockWriteSize)
-		byteOffset = 64
-	}
+	firstAddr := memDev.Size() - negativeDataOffset + firstPatchStorageOffset
 
-	// Load whole 4096 byte bank into memory
-	var patchBankBytes []byte = make([]byte, flashBlockWriteSize)
-	_, err := memDev.ReadAt(patchBankBytes, bankAddress)
+	patchesPerBlock := memDev.EraseBlockSize() / patchLengthBytes
+	// Returns 0 or 1 showing which block we're concerned with backing up and erasing
+	whichBlock := int64(int64(index) / patchesPerBlock)
+	realFirstAddr := firstAddr + memDev.EraseBlockSize()*whichBlock
+
+	var patchBytes []byte = make([]byte, memDev.EraseBlockSize())
+	_, err := memDev.ReadAt(patchBytes, realFirstAddr)
 	if err != nil {
 		log.Logf("Failed to load patch bank for writing.")
 		return false
 	}
 
-	// Replace bytes in upper or lower patchBank with current patch
-	relevantByte := (int(index) - byteOffset) * patchLengthBytes
+	j := (int64(index) - whichBlock*patchesPerBlock) * patchLengthBytes
+	// log.Logf("j: %d", j)
 	for c := 0; c < 2; c++ {
 		for b := 0; b < 4; b++ {
 			for i := 0; i < 8; i++ {
-				patchBankBytes[relevantByte] = byte((m.patchMem[c][b] >> (i * 8)) & 0xff)
-				relevantByte++
+				patchBytes[j] = byte((m.patchMem[c][b] >> (i * 8)) & 0xff)
+				j++
 			}
 		}
 	}
 
-	_, err = memDev.WriteAt(patchBankBytes, bankAddress)
+	// Reset flash
+	firstEraseBlock := realFirstAddr / memDev.EraseBlockSize()
+	errEr := memDev.EraseBlocks(firstEraseBlock, 1)
+	if errEr != nil {
+		log.Logf("Failed to erase block %d", firstEraseBlock)
+		return false
+	}
+
+	// Write entire block back to memory
+	_, err = memDev.WriteAt(patchBytes, realFirstAddr)
 	if err != nil {
 		log.Logf("Failed to save patch #%d", index)
 		return false
@@ -184,6 +191,19 @@ func (m *StorageDevice) savePatch(index uint8) bool {
 }
 
 func (m *StorageDevice) loadPatch(index uint8) bool {
+	firstAddr := memDev.Size() - negativeDataOffset + firstPatchStorageOffset
+
+	var patchBytes []byte = make([]byte, patchLengthBytes)
+
+	address := firstAddr + int64(index)*patchLengthBytes
+	_, err := memDev.ReadAt(patchBytes, address)
+	if err != nil || patchBytes[0]&0xf != settingsPatchSidDatatypeDefault {
+		m.newPatch()
+		m.patchLoaded = true
+		// log.Logf("Failed loading patch #%d", index)
+		return false
+	}
+
 	// Start with a clear slate
 	for c := 0; c < 2; c++ {
 		for b := 0; b < 4; b++ {
@@ -191,21 +211,13 @@ func (m *StorageDevice) loadPatch(index uint8) bool {
 		}
 	}
 
-	var patchBytes []byte = make([]byte, patchLengthBytes)
-
-	address := firstPatchStorageAddr + int64(index)*patchLengthBytes
-	_, err := memDev.ReadAt(patchBytes, address)
-	if err != nil || patchBytes[0]&0xf != settingsPatchSidDatatypeDefault {
-		m.newPatch()
-		m.patchLoaded = true
-		return false
-	}
-
-	i := 0
+	j := 0
 	for c := 0; c < 2; c++ {
 		for b := 0; b < 4; b++ {
-			m.patchMem[c][b] |= uint64(patchBytes[i]) << (i * 8)
-			i++
+			for i := 0; i < 8; i++ {
+				m.patchMem[c][b] |= uint64(patchBytes[j]) << (i * 8)
+				j++
+			}
 		}
 	}
 	m.patchChanged = false

@@ -9,8 +9,9 @@ type patchBank uint8
 
 const (
 	// Mapping for General data storage
+	negativeDataOffset = 16384
 
-	flashBlockWriteSize = 4096
+	flashBlockWriteSize = 100
 )
 
 const (
@@ -44,14 +45,24 @@ func (m *StorageDevice) Init() {
 	m.loadPatch(m.GetSelectedPatch())
 }
 
+func (m *StorageDevice) Load(patchNo uint8) bool {
+	m.SetSelectedPatch(patchNo)
+	return m.loadPatch(patchNo) && m.saveGeneral()
+}
+
+func (m *StorageDevice) Save(patchNo uint8) bool {
+	m.SetSelectedPatch(patchNo)
+	return m.savePatch(patchNo) && m.saveGeneral()
+}
+
+func (m *StorageDevice) SaveGeneral() bool {
+	return m.saveGeneral()
+}
+
 func (m *StorageDevice) Tick() {
 	if m.generalChanged {
-		m.saveGeneral()
+		// m.saveGeneral()
 	}
-	if m.patchChanged {
-		m.savePatch(m.GetSelectedPatch())
-	}
-	time.Sleep(time.Second * 5)
 }
 
 func New() StorageDevice {

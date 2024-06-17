@@ -17,6 +17,7 @@ const (
 var (
 	display           ssd1306.Device
 	lastDisplayUpdate = time.Time{}
+	saveLoadMode      = false
 )
 
 func Task(i2c *machine.I2C) {
@@ -33,16 +34,38 @@ func Task(i2c *machine.I2C) {
 
 	for {
 		tickEncoders()
+		currentTime := time.Now()
 
-		// Change menu - returns true if changed
-		if menu.ChangeMainMenu(Encoder[0]) {
-			menu.SetupEncoderMenuRanges(Encoder[1:])
+		if Encoder[0].SwitchWasClicked() {
+			saveLoadMode = true
+			Encoder[0].SetValue(0)
 		}
 
-		currentTime := time.Now()
-		if currentTime.Compare(lastDisplayUpdate.Add(time.Millisecond*20)) > 0 {
-			lastDisplayUpdate = currentTime
-			menu.RenderMainMenu(&display, Encoder[1:])
+		if saveLoadMode {
+			if menu.ChangeSaveLoadMenu(Encoder[0]) {
+				menu.SetupEncoderSaveLoadMenuRanges(Encoder[1:])
+			}
+
+			if currentTime.Compare(lastDisplayUpdate.Add(time.Millisecond*20)) > 0 {
+				lastDisplayUpdate = currentTime
+				menu.RenderSaveLoadMenu(&display, Encoder[1:])
+			}
+
+			if menu.SaveLoadComplete {
+				menu.SaveLoadComplete = false
+				saveLoadMode = false
+				Encoder[0].SetValue(0)
+			}
+		} else {
+			// Change menu - returns true if changed
+			if menu.ChangeMainMenu(Encoder[0]) {
+				menu.SetupEncoderMenuRanges(Encoder[1:])
+			}
+
+			if currentTime.Compare(lastDisplayUpdate.Add(time.Millisecond*20)) > 0 {
+				lastDisplayUpdate = currentTime
+				menu.RenderMainMenu(&display, Encoder[1:])
+			}
 		}
 
 		runtime.Gosched()

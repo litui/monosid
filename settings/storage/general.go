@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"time"
+
 	"github.com/litui/monosid/log"
 	"github.com/litui/monosid/shared"
 )
@@ -8,9 +10,9 @@ import (
 const (
 	// Going to use the entire first block of 4096 bits for general just in case we need the storage for future functionality
 
-	settingsGeneralStorageAddr = 0x100000
-	settingsGeneralTotalBits   = 64
-	settingsGeneralTotalBytes  = settingsGeneralTotalBits / 8
+	settingsGeneralStorageOffset = 0
+	settingsGeneralTotalBits     = 64
+	settingsGeneralTotalBytes    = settingsGeneralTotalBits / 8
 
 	settingsGeneralDatatypeOffset         = 0
 	settingsGeneralDatatypeBits           = 4
@@ -108,11 +110,22 @@ func (m *StorageDevice) newGeneral() {
 }
 
 func (m *StorageDevice) saveGeneral() bool {
+	firstAddr := memDev.Size() - negativeDataOffset + settingsGeneralStorageOffset
+
 	var settingsBytes []byte = make([]byte, settingsGeneralTotalBytes)
 	for i := 0; i < settingsGeneralTotalBytes; i++ {
 		settingsBytes[i] = byte((m.generalMem >> (i * 8)) & 0xff)
 	}
-	_, err := memDev.WriteAt(settingsBytes, settingsGeneralStorageAddr)
+
+	// This is why we reserved 4096 bytes just for general settings.
+	firstEraseBlock := firstAddr / memDev.EraseBlockSize()
+	errEr := memDev.EraseBlocks(firstEraseBlock, 1)
+	if errEr != nil {
+		log.Logf("Failed to erase block %d", firstEraseBlock)
+		return false
+	}
+
+	_, err := memDev.WriteAt(settingsBytes, firstAddr)
 	if err != nil {
 		log.Logf("Failed to write settings")
 		return false
@@ -124,13 +137,17 @@ func (m *StorageDevice) saveGeneral() bool {
 }
 
 func (m *StorageDevice) loadGeneral() bool {
+	firstAddr := memDev.Size() - negativeDataOffset + settingsGeneralStorageOffset
+
 	// Start with a clear slate
 	m.generalMem = uint64(0)
 
 	// Attempt to load settings. If that fails, generate new settings.
-	var settingsBytes []byte = make([]byte, settingsGeneralTotalBits/8)
-	_, err := memDev.ReadAt(settingsBytes, settingsGeneralStorageAddr)
+	var settingsBytes []byte = make([]byte, settingsGeneralTotalBytes)
+	_, err := memDev.ReadAt(settingsBytes, firstAddr)
+	time.Sleep(time.Millisecond * 50)
 	if err != nil || settingsBytes[0]&0xf != settingsGeneralDatatypeDefault {
+		log.Logf("Failed to load general settings.")
 		m.newGeneral()
 		m.generalLoaded = true
 		return false
@@ -143,11 +160,13 @@ func (m *StorageDevice) loadGeneral() bool {
 	m.generalChanged = false
 
 	log.Logf("Loaded general settings")
+	// log.Logf("%b", m.generalMem)
 	return true
 }
 
 func (m *StorageDevice) SetQuantizerMode(mode QuantizerMode) {
 	setValue(&m.generalMem, settingsGeneralQuantizerModeOffset, mode, settingsGeneralQuantizerModeBits)
+	m.generalChanged = true
 }
 
 func (m *StorageDevice) ResetQuantizerMode() {
@@ -160,6 +179,7 @@ func (m *StorageDevice) GetQuantizerMode() QuantizerMode {
 
 func (m *StorageDevice) SetQuantizerRoot(note ScaleNote) {
 	setValue(&m.generalMem, settingsGeneralQuantizerRootOffset, note, settingsGeneralQuantizerRootBits)
+	m.generalChanged = true
 }
 
 func (m *StorageDevice) ResetQuantizerRoot() {
@@ -172,6 +192,7 @@ func (m *StorageDevice) GetQuantizerRoot() ScaleNote {
 
 func (m *StorageDevice) SetQuantizerScale(scale Scale) {
 	setValue(&m.generalMem, settingsGeneralQuantizerScaleOffset, scale, settingsGeneralQuantizerScaleBits)
+	m.generalChanged = true
 }
 
 func (m *StorageDevice) ResetQuantizerScale() {
@@ -206,6 +227,7 @@ func (m *StorageDevice) SetMidiChannel(chip shared.SidChip, voice shared.VoiceIn
 		}
 	}
 	setValue[uint8](&m.generalMem, chanAddr, channel, chanSize)
+	m.generalChanged = true
 }
 
 func (m *StorageDevice) ResetMidiChannel(chip shared.SidChip, voice shared.VoiceIndex) {
@@ -263,6 +285,7 @@ func (m *StorageDevice) GetMidiChannel(chip shared.SidChip, voice shared.VoiceIn
 
 func (m *StorageDevice) SetSelectedPatch(index uint8) {
 	setValue(&m.generalMem, settingsGeneralPatchSelOffset, index, settingsGeneralPatchSelBits)
+	m.generalChanged = true
 }
 
 func (m *StorageDevice) ResetSelectedPatch() {

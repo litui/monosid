@@ -139,9 +139,11 @@ func (enc *Device) SetRange(bottom int, top int) {
 	enc.rangeBottom = bottom
 	enc.rangeTop = top
 
-	if enc.value < enc.rangeBottom {
+	divVal := enc.value / clickSum
+
+	if divVal < enc.rangeBottom {
 		enc.value = enc.rangeBottom * clickSum
-	} else if enc.value > enc.rangeTop {
+	} else if divVal > enc.rangeTop {
 		enc.value = enc.rangeTop * clickSum
 	}
 }

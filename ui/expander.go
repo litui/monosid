@@ -34,7 +34,6 @@ func initEncoders(i2c *machine.I2C) {
 		Encoder = append(Encoder, &r)
 	}
 
-	// Lock in the range for the main menu encoder
 	Encoder[0].SetRange(0, int(menu.MENU_LENGTH)-1)
 
 	pinCache, _ = expander.GetPins()
@@ -45,6 +44,12 @@ func initEncoders(i2c *machine.I2C) {
 func tickEncoders() {
 	if !encReady {
 		return
+	}
+
+	if saveLoadMode {
+		Encoder[0].SetRange(0, int(menu.SAVE_LOAD_MENU_LENGTH)-1)
+	} else {
+		Encoder[0].SetRange(0, int(menu.MENU_LENGTH)-1)
 	}
 
 	pins, _ := expander.GetPins()

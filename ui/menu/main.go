@@ -29,6 +29,7 @@ const (
 const (
 	sixColWidth   = config.DISPLAY_WIDTH / 6
 	threeColWidth = config.DISPLAY_WIDTH / 3
+	twoColWidth   = config.DISPLAY_WIDTH / 2
 	headerY       = (config.DISPLAY_HEIGHT / 2) - 2
 	mainY         = config.DISPLAY_HEIGHT - 2
 )
